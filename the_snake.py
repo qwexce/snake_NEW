@@ -104,6 +104,10 @@ class Snake(GameObject):
         self.body_color = SNAKE_COLOR
         self.last = None
 
+    def get_head_position(self):
+        """Возвращает позицию головы змейки."""
+        return self.positions[0]
+
     def update_direction(self):
         """Применяет отложенное направление движения змейки."""
         if self.next_direction:
@@ -117,13 +121,14 @@ class Snake(GameObject):
         последний элемент, если длина змейки не увеличилась.
         Обеспечивает проход сквозь стены.
         """
-        head_x, head_y = self.positions[0]
+        head_x, head_y = self.get_head_position()
         dx, dy = self.direction
         new_head = (
             (head_x + dx * GRID_SIZE) % SCREEN_WIDTH,
             (head_y + dy * GRID_SIZE) % SCREEN_HEIGHT,
         )
         self.positions.insert(0, new_head)
+        self.position = new_head
 
         if len(self.positions) > self.length:
             self.last = self.positions.pop()
@@ -138,7 +143,7 @@ class Snake(GameObject):
             pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
 
         # Отрисовка головы змейки
-        head_rect = pygame.Rect(self.positions[0], (GRID_SIZE, GRID_SIZE))
+        head_rect = pygame.Rect(self.get_head_position(), (GRID_SIZE, GRID_SIZE))
         pygame.draw.rect(screen, self.body_color, head_rect)
         pygame.draw.rect(screen, BORDER_COLOR, head_rect, 1)
 
@@ -151,6 +156,7 @@ class Snake(GameObject):
         """Сбрасывает змейку в начальное состояние при столкновении."""
         self.length = 1
         self.positions = [(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)]
+        self.position = self.positions[0]
         self.direction = RIGHT
         self.next_direction = None
         self.last = None
@@ -189,12 +195,12 @@ def main():
         snake.move()
 
         # Проверка столкновения с самим собой
-        if snake.positions[0] in snake.positions[1:]:
+        if snake.get_head_position() in snake.positions[1:]:
             snake.reset()
             apple.randomize_position()
 
         # Проверка поедания яблока
-        if snake.positions[0] == apple.position:
+        if snake.get_head_position() == apple.position:
             snake.length += 1
             apple.randomize_position()
             # Гарантия того, что яблоко не появится внутри змейки
